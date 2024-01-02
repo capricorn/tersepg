@@ -28,7 +28,7 @@ struct PrefixResult: Equatable {
 
 typealias ASTPrefixAutomata = (String?) -> PrefixResult
 
-func A(_ auto: @escaping PrefixAutomata, _ node: AST) -> ASTPrefixAutomata {
+func A(_ auto: @escaping PrefixAutomata, _ node: AST?) -> ASTPrefixAutomata {
     { input in
         if auto(input) != nil {
             return PrefixResult(remainder: auto(input), node: node)
@@ -87,33 +87,8 @@ postfix func *(_ auto: @escaping ASTPrefixAutomata) -> (AST) -> ASTPrefixAutomat
     }
 }
 
-// Prefix > AST
-func >(_ auto: @escaping PrefixAutomata, ast: @escaping ASTPrefixAutomata) -> ASTPrefixAutomata {
-    return { input in
-        guard let input else {
-            return PrefixResult.lambda
-        }
-        
-        guard let autoResult = auto(input) else {
-            return PrefixResult.lambda
-        }
-        
-        return ast(autoResult)
-    }
-}
-
-func >(_ ast: @escaping ASTPrefixAutomata, _ auto: @escaping PrefixAutomata) -> ASTPrefixAutomata {
-    return { input in
-        if ast(input) != PrefixResult.lambda {
-            let result = ast(input)
-            return PrefixResult(remainder: auto(result.remainder), node: result.node)
-        }
-        
-        return PrefixResult.lambda
-    }
-}
-
 func >(_ a1: @escaping ASTPrefixAutomata, _ a2: @escaping ASTPrefixAutomata) -> ASTPrefixAutomata {
+    print("ASTPrefix comp")
     return { input in
         print("ASTPrefix composition")
         if a1(input) != PrefixResult.lambda {
@@ -137,4 +112,60 @@ func >(_ a1: @escaping ASTPrefixAutomata, _ a2: @escaping ASTPrefixAutomata) -> 
         
         return PrefixResult.lambda
     }
+}
+
+// Prefix > AST
+/*
+func >(_ auto: @escaping PrefixAutomata, ast: @escaping ASTPrefixAutomata) -> ASTPrefixAutomata {
+    return { input in
+        guard let input else {
+            return PrefixResult.lambda
+        }
+        
+        guard let autoResult = auto(input) else {
+            return PrefixResult.lambda
+        }
+        
+        return ast(autoResult)
+    }
+}
+ */
+
+/*
+func >(_ ast: @escaping ASTPrefixAutomata, _ auto: @escaping PrefixAutomata) -> ASTPrefixAutomata {
+    return { input in
+        /*
+        if ast(input) != PrefixResult.lambda {
+            let result = ast(input)
+            // TODO: Should this guard on failure?
+            return PrefixResult(remainder: auto(result.remainder), node: result.node)
+        }
+        
+        return PrefixResult.lambda
+         */
+        return PrefixResult(remainder: auto(ast(input).remainder), node: ast(input).node)
+    }
+}
+*/
+
+func AR(
+    _ ast: AST,
+    _ body: @escaping (@escaping ASTPrefixAutomata, String?) -> ASTPrefixAutomata
+) -> ASTPrefixAutomata {
+    var f: ASTPrefixAutomata!
+    f = { (input: String?) in
+        let result = body(f, input)(input)
+        // Problem: AST is by reference..? need to create a new copy each iteration.
+        var newAST = result.node//ast//result.node! //?? ast
+        
+        if case .node(let tag, let nodes) = ast, let childAST = result.node {
+            var newNodes = nodes
+            newNodes.append(childAST)
+            newAST = .node(tag: tag, nodes: newNodes)
+        }
+        
+        return PrefixResult(remainder: result.remainder, node: newAST)
+    }
+    
+    return f
 }

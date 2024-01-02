@@ -36,4 +36,26 @@ final class TersePGTests: XCTestCase {
 
         XCTAssert(L("[1,[1,[1],[1]]]")?.isEmpty ?? false)
     }
+    
+    func testRecursiveASTParse() throws {
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        // TODO: Make available elsewhere
+        // Note: this is a possible approach to 'result builders'..?
+        typealias RecursiveProduction = (@escaping ASTPrefixAutomata) -> ASTPrefixAutomata
+        
+        // Should remove operator ambiguity..
+        let nestedParenRule: RecursiveProduction = { r in
+            // What to do about ambiguous operators?
+            // Presumably dispatches to the wrong method since r is quite happy
+            // to execute on String?.. (happened before..)
+            A(P("["), nil) > r > A(P("]"), nil)
+        }
+        // Problem: wrong function being resolved..?
+        let l2 = AR(ListNode) { (r: @escaping ASTPrefixAutomata, input: String?) -> ASTPrefixAutomata in
+            nestedParenRule(r) | A(P("[") > P("]"), ListNode)
+        }
+        //let l2 = AR(ListNode) { r, input in (P("[") > r) > P("]") }
+        print("Remainder: \(l2("[[[]]]").remainder)")
+        print("Nested list: \(l2("[[[]]]").node!)")
+    }
 }
