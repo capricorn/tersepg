@@ -164,6 +164,9 @@ func AR(
 ) -> ASTPrefixAutomata {
     var f: ASTPrefixAutomata!
     f = { (input: String?) in
+        return body(f, input)(input)
+        /*
+        print("Recurse: \(input)")
         let result = body(f, input)(input)
         // Problem: AST is by reference..? need to create a new copy each iteration.
         var newAST = result.node//ast//result.node! //?? ast
@@ -175,6 +178,7 @@ func AR(
         }
         
         return PrefixResult(remainder: result.remainder, node: newAST)
+         */
     }
     
     return f

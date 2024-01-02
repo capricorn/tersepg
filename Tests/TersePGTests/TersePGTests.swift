@@ -98,4 +98,48 @@ final class TersePGTests: XCTestCase {
         // TODO: Verify equality
         XCTAssert(matcher("[[]]").node == .node(tag: "List", nodes: [.node(tag: "List", nodes: [])]))
     }
+    
+    func testASTCompositionDeep() throws {
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        let submatch = A(P("a"), ListNode)
+        let m = submatch > submatch > submatch
+        print(m("aaa").node!)
+        
+        /*
+        XCTAssert(m("aaa").node == .node(tag: "List", nodes: [.node(tag: "List", nodes: [.node(tag: "List", nodes: [])])]))
+        */
+        
+        // TODO: Did I implement printing wrong..?
+        let t1: AST = .node(tag: "List", nodes: [.node(tag: "List", nodes: [.node(tag: "Terminal", nodes: [])])])
+        print(t1)
+        
+        let r = m("aaa")
+        if case .node(let tag, let nodes) = r.node {
+            if case .node(let tag, let nodes2) = nodes.first {
+                if case .node(let tag, let _) = nodes2.first {
+                    return
+                }
+            }
+        }
+        
+        
+        XCTFail()
+    }
+    
+    func testRecursiveASTComposition() throws {
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        // TODO: Can r be wrapped with the required node..?
+        // TODO: See how AR modifies the AST
+        // Try a different node for terminals
+        // So: why is the leaf not a child?
+        let LeafNode: AST = .node(tag: "Leaf", nodes: [])
+        let matcher = AR(ListNode) { r, input in
+            (A(P("["), nil) > A(P("]"), LeafNode))
+            | (A(P("["), nil) > r > A(P("]"), ListNode))
+        }
+        
+        // Problem: top-level list is missing..? (Still, closer)
+        // TODO: Try ast quantifier
+        print(matcher("[[[[]]]]").node!)
+    }
 }
