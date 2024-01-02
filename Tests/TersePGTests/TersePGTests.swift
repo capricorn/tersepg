@@ -54,8 +54,48 @@ final class TersePGTests: XCTestCase {
         let l2 = AR(ListNode) { (r: @escaping ASTPrefixAutomata, input: String?) -> ASTPrefixAutomata in
             nestedParenRule(r) | A(P("[") > P("]"), ListNode)
         }
+        
         //let l2 = AR(ListNode) { r, input in (P("[") > r) > P("]") }
         print("Remainder: \(l2("[[[]]]").remainder)")
-        print("Nested list: \(l2("[[[]]]").node!)")
+        print("Nested list: \(l2("[[[]]]").node)")
+    }
+    
+    func testASTCompositionOperatorLeftEmpty() throws {
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        let ast = A(P("["), nil) > A(P("]"), ListNode)
+        
+        XCTAssert(ast("[]").node != nil)
+        
+        if case .node(let tag, _) = ast("[]]").node {
+            XCTAssert(tag == "List")
+            return
+        }
+        
+        XCTFail()
+    }
+    
+    func testASTCompositionOperatorRightEmpty() throws {
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        let ast = A(P("["), ListNode) > A(P("]"), nil)
+        
+        XCTAssert(ast("[]").node != nil)
+        
+        if case .node(let tag, _) = ast("[]]").node {
+            XCTAssert(tag == "List")
+            return
+        }
+        
+        XCTFail()
+    }
+    
+    // Verify the correct tree is built
+    func testASTCompositionChildNode() throws {
+        // Next, test on recursive tree
+        let ListNode: AST = .node(tag: "List", nodes: [])
+        let submatcher = A(P("["), nil) > A(P("]"), ListNode)
+        let matcher = A(P("["), nil) > submatcher > A(P("]"), ListNode)
+        
+        // TODO: Verify equality
+        XCTAssert(matcher("[[]]").node == .node(tag: "List", nodes: [.node(tag: "List", nodes: [])]))
     }
 }

@@ -87,27 +87,32 @@ postfix func *(_ auto: @escaping ASTPrefixAutomata) -> (AST) -> ASTPrefixAutomat
     }
 }
 
+// TODO: nil test for this
 func >(_ a1: @escaping ASTPrefixAutomata, _ a2: @escaping ASTPrefixAutomata) -> ASTPrefixAutomata {
     print("ASTPrefix comp")
     return { input in
-        print("ASTPrefix composition")
-        if a1(input) != PrefixResult.lambda {
-            let a1Result = a1(input)
-            // Make a1's result a child of a2
-            let a2Result = a2(a1Result.remainder)
-            
-            print("Composing ast")
-            if case .node(let a2Tag, let a2Nodes) = a2Result.node {
-                var combinedNodes = a2Nodes
-                if let a1Node = a1Result.node {
-                    combinedNodes.append(a1Node)
-                }
-                
-                print("Combined nodes: \(combinedNodes)")
-                
-                let composedNode: AST = .node(tag: a2Tag, nodes: combinedNodes)
-                return PrefixResult(remainder: a2Result.remainder, node: composedNode)
+        guard a1(input) != PrefixResult.lambda else {
+            return PrefixResult.lambda
+        }
+        
+        guard a2(a1(input).remainder) != PrefixResult.lambda else {
+            return PrefixResult.lambda
+        }
+        
+        let result = a2(a1(input).remainder)
+        guard let a1AST = a1(input).node, let a2AST = result.node else {
+            // If both ast nodes do not exist, return the first that does
+            return PrefixResult(remainder: result.remainder, node: a1(input).node ?? result.node)
+        }
+        
+        if case .node(let a2Tag, let a2Nodes) = result.node {
+            var combinedNodes = a2Nodes
+            if let a1Node = a1(input).node {
+                combinedNodes.append(a1Node)
             }
+            
+            let composedNode: AST = .node(tag: a2Tag, nodes: combinedNodes)
+            return PrefixResult(remainder: result.remainder, node: composedNode)
         }
         
         return PrefixResult.lambda
