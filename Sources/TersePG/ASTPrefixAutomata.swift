@@ -10,11 +10,16 @@ import Foundation
 indirect enum AST: Equatable, CustomStringConvertible {
     case node(tag: String, nodes: [AST])
     
-    var description: String {
+    private func treeDescription(_ depth: Int = 1) -> String  {
+        let separator = (0..<depth).map({ _ in "\t" }).joined()
         switch self {
         case .node(let tag, let nodes):
-            return "\(tag)\n" + nodes.map({ "\t" + $0.description }).joined()
+            return "\(tag)\n" + nodes.map({ separator + $0.treeDescription(depth+1) }).joined()
         }
+    }
+    
+    var description: String {
+        treeDescription()
     }
 }
 
