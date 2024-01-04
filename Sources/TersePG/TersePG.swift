@@ -1,6 +1,7 @@
 typealias PrefixAutomata = (String?) -> String?
 
 postfix operator *
+postfix operator +
 infix operator |: AdditionPrecedence
 infix operator >: MultiplicationPrecedence
 
@@ -38,6 +39,21 @@ postfix func *(_ auto: @escaping PrefixAutomata) -> PrefixAutomata {
         }
         
         var result: String? = input
+        while (auto(result) != nil) {
+            result = auto(result)
+        }
+        
+        return result
+    }
+}
+
+postfix func +(_ auto: @escaping PrefixAutomata) -> PrefixAutomata {
+    { input in
+        guard let input else {
+            return nil
+        }
+        
+        var result: String? = auto(input)
         while (auto(result) != nil) {
             result = auto(result)
         }
