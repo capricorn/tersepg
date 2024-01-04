@@ -1,4 +1,4 @@
-This package is an experimental parser generator, implemented using
+This package is an experimental parser generator implemented using
 'extended' regex derivatives.
 
 A regex derivative in this package:
