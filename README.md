@@ -47,4 +47,12 @@ The above will parse any nested list such as `"[[[]]]"`.
 
 ### Constructing and composing parsers: an example
 
-TODO
+Example of a digit tree:
+
+```swift
+let digit = P("0")|P("1")|P("2")|P("3")|P("4")|P("5")|P("6")|P("7")|P("8")|P("9")
+let digitTree = R { r, input in (digit+ | P("[") > (r>P(","))* > r > P("]"))(input) }
+L2("[[122],[2,[3,4]]]")?.isEmpty) == true
+```
+        
+
