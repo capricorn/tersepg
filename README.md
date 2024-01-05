@@ -4,7 +4,7 @@ This package is an experimental parser generator implemented using
 A regex derivative in this package:
 
 ```swift
-P("abc")("abc") = "a"
+P("a")("abc") = "bc"
 ```
 
 ## Derivative operators
