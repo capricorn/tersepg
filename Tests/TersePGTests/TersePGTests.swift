@@ -128,6 +128,7 @@ final class TersePGTests: XCTestCase {
     
     func testRecursiveASTComposition() throws {
         let ListNode: AST = .node(tag: "List", nodes: [])
+        let RootNode: AST = .node(tag: "Root", nodes: [])
         // TODO: Can r be wrapped with the required node..?
         // TODO: See how AR modifies the AST
         // Try a different node for terminals
@@ -141,5 +142,56 @@ final class TersePGTests: XCTestCase {
         // Problem: top-level list is missing..? (Still, closer)
         // TODO: Try ast quantifier
         print(matcher("[[[[]]]]").node!)
+        
+        // IMO: For recursive, why does a node need provided?
+        // TODO: Use RootNode to help figure things out
+        // WIP: Trees of any form
+        let m1 = AR(ListNode) { r, input in ((A(P("["), nil) > r > A(P("]"), ListNode))*)(RootNode) }
+        print(m1("[][[[][]]]").node ?? "n/a")
+    }
+    
+    func testNumberTreeMatcher() throws {
+        // TODO: Verify precedence
+        /*
+        let digit = P("0")|P("1")|P("2")|P("3")|P("4")|P("5")|P("6")|P("7")|P("8")|P("9")
+        //let list = R { r, input in ((digit*) | (P("[") > r > P("]")) | (r > P(",") > r))(input) }
+        let list = R { r, input in ((P("[") > r > P("]")) | ((r > P(","))* > r) | digit*)(input) }
+        let root = (P("[") > list) > P("]")
+        
+        print(root("[11,1]"))
+         */
+        
+        //let root = R { r, input in (P("[") > r > P("]") | P("1"))(input) }
+        let digit = P("0")|P("1")|P("2")|P("3")|P("4")|P("5")|P("6")|P("7")|P("8")|P("9")
+        // TODO: Try to replace iteration with `r > P > r`, see if it works / terminates
+        // TODO: Cleanup (w/out parens) and add to readme
+        // Problem: making digit -> digit* short-circuits parser..
+        let L = R { r, input in ((digit)|(((P("[") > ((r>P(","))*)) > r) > P("]")))(input) }
+        print(L("[[2],[2,[3,4]]]"))
+        
+        // Drop parens, see if it still matches:
+        // (If it doesn't, then clearly operator precedence is wrong)
+        //let L2 = R { r, input in (digit* | (((P("[") > ((r>P(","))*)) > r) > P("]")))(input) }
+        let L2 = R { r, input in (digit+ | P("[") > (r>P(","))* > r > P("]"))(input) }
+        print(L2("[[122],[2,[3,4]]]"))
+        //print(root("[[1]]"))
+    }
+    
+    /// Parse a very simple lexed form of BNF, encoded into characters
+    func testBNFMatcher() throws {
+        /**
+         Think in terms of the following encoding performed by a lexer:
+         
+         ProductionRule = "P"
+         AssignmentSymbol = "A"
+         QuantifiedRule = "Q"
+         Rule = "R"
+         Stop = "S"
+         
+         If a list of production rules is allowed it can be encoded as:
+         (P A (Q|R)+ S)*
+         */
+        let matcher = (P("P") > P("A") > (P("Q")|P("R"))+ > P("S"))*
+        XCTAssert(matcher("PARQSPARS")?.isEmpty ?? false)
     }
 }

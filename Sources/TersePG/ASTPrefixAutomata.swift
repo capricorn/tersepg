@@ -57,7 +57,7 @@ func |(_ a1: @escaping ASTPrefixAutomata, _ a2: @escaping ASTPrefixAutomata) -> 
     }
 }
 
-postfix func *(_ auto: @escaping ASTPrefixAutomata) -> (AST) -> ASTPrefixAutomata {
+postfix func *(_ auto: @escaping ASTPrefixAutomata) -> (AST?) -> ASTPrefixAutomata {
     { ast in
         return { input in
             guard let input else {
