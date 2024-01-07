@@ -60,7 +60,7 @@ postfix func +(_ b: BNFResult) -> BNFResult {
 
 // TODO
 func |(_ b1: BNFResult, _ b2: BNFResult) -> BNFResult {
-    let node = BNFNode(label: "N", children: [b1.node,b2.node])
+    let node = BNFNode(label: "|", children: [b1.node,b2.node])
     
     return BNFResult(auto: b1.auto | b2.auto, node: node)
 }
@@ -87,6 +87,18 @@ func subtrees(_ root: BNFNode) -> [BNFNode] {
 func traverse(_ node: BNFNode) -> String {
     let subt = subtrees(node)
     var result = ""
+    
+    if node.label == "|" {
+        var orResults: [String] = []
+        for st in subt {
+            if st.label == "|" {
+                orResults.append(traverse(st))
+            } else {
+                orResults.append(st.label)
+            }
+        }
+        return orResults.joined(separator: "|")
+    }
 
     if subt.isEmpty == false {
         result += "\(node.label) -> \(subt.map({$0.label}).joined(separator: " "))\n"
