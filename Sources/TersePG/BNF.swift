@@ -8,6 +8,9 @@
 import Foundation
 
 infix operator >
+infix operator |
+postfix operator +
+postfix operator *
 
 
 // First: make a wrapper that associates the AST with the PrefixAutomata
@@ -44,6 +47,27 @@ func >(_ b1: BNFResult, _ b2: BNFResult) -> BNFResult {
     let node = BNFNode(label: "N", children: [b1.node, b2.node])
     return BNFResult(auto: b1.auto > b2.auto, node: node)
 }
+
+postfix func *(_ b: BNFResult) -> BNFResult {
+    b.node.label = "(\(b.node.label))*"
+    return BNFResult(auto: (b.auto)*, node: b.node)
+}
+
+postfix func +(_ b: BNFResult) -> BNFResult {
+    b.node.label = "(\(b.node.label))+"
+    return BNFResult(auto: (b.auto)+, node: b.node)
+}
+
+// TODO
+func |(_ b1: BNFResult, _ b2: BNFResult) -> BNFResult {
+    let node = BNFNode(label: "N", children: [b1.node,b2.node])
+    
+    return BNFResult(auto: b1.auto | b2.auto, node: node)
+}
+
+
+
+// TODO: Implement quantification operators
 
 
 // TODO: Switch to binary tree type

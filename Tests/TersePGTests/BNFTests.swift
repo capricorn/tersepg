@@ -9,6 +9,7 @@ import XCTest
 @testable import TersePG
 
 infix operator >: MultiplicationPrecedence
+infix operator |
 
 final class BNFTests: XCTestCase {
     func testBNFConstruction() throws {
@@ -26,5 +27,27 @@ final class BNFTests: XCTestCase {
         let bnf = bnfRule((BNF(P("A"), aNode) > nestedRule > BNF(P("B"), bNode)), "TestRule")
         
         print(traverse(bnf.node))
+    }
+    
+    func testBNFBNF() throws {
+        let ProductionRule = BNFNode(label: "ProductionRule", children: [])
+        let AssignmentRule = BNFNode(label: "AssignmentRule", children: [])
+        let QuantifiedRule = BNFNode(label: "QuantifiedRule", children: [])
+        let Rule = BNFNode(label: "Rule", children: [])
+        let Stop = BNFNode(label: "Stop", children: [])
+        
+        let BNFProduction = BNF(P("P"), ProductionRule)
+        let BNFAssignment = BNF(P("A"), AssignmentRule)
+        let BNFQuantRule = BNF(P("Q"), QuantifiedRule)
+        let BNFRule = BNF(P("R"), Rule)
+        let BNFStop = BNF(P("S"), Stop)
+        
+        // WIP: Handle quantifiers correctly
+        let rule = bnfRule((BNFQuantRule|BNFRule), "BNFRule")+
+        let bnf = bnfRule(
+            (BNFProduction > BNFAssignment > rule > BNFStop)*,
+            "BNF"
+        )
+        print(bnf.node)
     }
 }
