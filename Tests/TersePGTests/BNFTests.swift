@@ -58,4 +58,12 @@ final class BNFTests: XCTestCase {
         
         XCTAssert(((a|b)|c).node.description == "A|B|C")
     }
+    
+    func testBNFQuantifier() throws {
+        let a = BNF(P("A"), BNFNode(label: "A", children: []))
+        let b = BNF(P("B"), BNFNode(label: "B", children: []))
+        
+        XCTAssert((a+).node.description == "A+")
+        XCTAssert((((a|b)+).node).description == "(A|B)+")
+    }
 }

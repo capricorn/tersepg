@@ -49,13 +49,13 @@ func >(_ b1: BNFResult, _ b2: BNFResult) -> BNFResult {
 }
 
 postfix func *(_ b: BNFResult) -> BNFResult {
-    b.node.label = "(\(b.node.label))*"
-    return BNFResult(auto: (b.auto)*, node: b.node)
+    let node = BNFNode(label: "*", children: [b.node])
+    return BNFResult(auto: (b.auto)*, node: node)
 }
 
 postfix func +(_ b: BNFResult) -> BNFResult {
-    b.node.label = "(\(b.node.label))+"
-    return BNFResult(auto: (b.auto)+, node: b.node)
+    let node = BNFNode(label: "+", children: [b.node])
+    return BNFResult(auto: (b.auto)+, node: node)
 }
 
 // TODO
@@ -98,6 +98,14 @@ func traverse(_ node: BNFNode) -> String {
             }
         }
         return orResults.joined(separator: "|")
+    }
+    
+    if node.label == "+" || node.label == "*" {
+        if subt[0].children.isEmpty {
+            return "\(subt[0].label)\(node.label)"
+        } else {
+            return "(\(traverse(subt[0])))\(node.label)"
+        }
     }
 
     if subt.isEmpty == false {
