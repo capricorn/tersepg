@@ -30,26 +30,35 @@ final class BNFTests: XCTestCase {
     }
     
     func testBNFBNF() throws {
-        let ProductionRule = BNFNode(label: "ProductionRule", children: [])
-        let AssignmentRule = BNFNode(label: "AssignmentRule", children: [])
-        let QuantifiedRule = BNFNode(label: "QuantifiedRule", children: [])
-        let Rule = BNFNode(label: "Rule", children: [])
-        let Stop = BNFNode(label: "Stop", children: [])
+        let ProductionRule = BNFNode(label: "\"P\"", children: [])
+        let AssignmentRule = BNFNode(label: "\"A\"", children: [])
+        let QuantifiedRule = BNFNode(label: "\"Q\"", children: [])
+        let Rule = BNFNode(label: "\"R\"", children: [])
+        let Stop = BNFNode(label: "\"S\"", children: [])
         
-        let BNFProduction = BNF(P("P"), ProductionRule)
-        let BNFAssignment = BNF(P("A"), AssignmentRule)
-        let BNFQuantRule = BNF(P("Q"), QuantifiedRule)
-        let BNFRule = BNF(P("R"), Rule)
-        let BNFStop = BNF(P("S"), Stop)
+        let BNFProduction = container(BNF(P("P"), ProductionRule), "ProductionRule")
+        let BNFAssignment = container(BNF(P("A"), AssignmentRule), "AssignmentRule")
+        let BNFQuantRule = container(BNF(P("Q"), QuantifiedRule), "QuantifiedRule")
+        let BNFRule = container(BNF(P("R"), Rule), "Rule")
+        let BNFStop = container(BNF(P("S"), Stop), "Stop")
         
-        // WIP: Handle quantifiers correctly
-        let rule = container((BNFQuantRule|BNFRule)+, "BNFRule")
+        let rule = container(BNFQuantRule|BNFRule, "BNFRule")
         let bnf = container(
-            (BNFProduction > BNFAssignment > rule > BNFStop)*,
+            (BNFProduction > BNFAssignment > rule+ > BNFStop)*,
             "BNF"
         )
-        print(bnf.node)
-        print(rule.node)
+        
+        let expectedMessage = """
+        BNF -> (ProductionRule AssignmentRule (BNFRule)+ Stop)*
+        ProductionRule -> "P"
+        AssignmentRule -> "A"
+        BNFRule -> QuantifiedRule|Rule
+        QuantifiedRule -> "Q"
+        Rule -> "R"
+        Stop -> "S"
+        """
+        
+        XCTAssert(bnf.node.description == expectedMessage, bnf.node.description)
     }
     
     func testBNFOr() throws {
