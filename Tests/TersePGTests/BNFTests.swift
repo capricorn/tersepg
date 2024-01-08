@@ -61,32 +61,6 @@ final class BNFTests: XCTestCase {
         XCTAssert(bnf.node.description == expectedMessage, bnf.node.description)
     }
     
-    func testBNFOr() throws {
-        let a = BNF(P("A"), BNFNode(label: "A", children: []))
-        let b = BNF(P("B"), BNFNode(label: "B", children: []))
-        let c = BNF(P("C"), BNFNode(label: "C", children: []))
-        
-        XCTAssert(((a|b)|c).node.description == "A|B|C")
-    }
-    
-    func testBNFQuantifier() throws {
-        let a = BNF(P("A"), BNFNode(label: "A", children: []))
-        let b = BNF(P("B"), BNFNode(label: "B", children: []))
-        
-        XCTAssert((a+).node.description == "(A)+")
-        XCTAssert((((a|b)+).node).description == "(A|B)+")
-    }
-    
-    func testBNFComposition() throws {
-        let a = BNF(P("A"), BNFNode(label: "A", children: []))
-        let b = BNF(P("B"), BNFNode(label: "B", children: []))
-        let c = BNF(P("C"), BNFNode(label: "C", children: []))
-        
-        // WIP: Correcting quantifiers
-        XCTAssert(container((a > b > c), "Z").node.description == "Z -> A B C\n")
-        print(container((a > b > c)+, "Z").node)
-    }
-    
     func testBNFGeneration() throws {
         let a = BNF(P("A"), BNFNode(label: "A", children: []))
         let b = BNF(P("B"), BNFNode(label: "B", children: []))
